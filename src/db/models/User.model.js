@@ -18,6 +18,11 @@ const userSchema = new Schema(
       unique: true,
     },
     confirmEmailOTP: String,
+    otpCreatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    otpAttempts: { type: Number, default: 0, max: 5 },
     password: {
       type: String,
       required: true,

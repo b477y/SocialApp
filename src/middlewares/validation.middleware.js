@@ -11,12 +11,14 @@ export const generalFields = {
     .string()
     .regex(new RegExp(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/)),
   confirmationPassword: joi.string().valid(joi.ref("password")),
+  phoneNumber: joi.string().pattern(new RegExp(/^(002|\+2)?01[0125][0-9]{8}$/)),
+  OTP: joi.string().pattern(new RegExp(/^\d{4}$/)),
 };
 
-export const validation = (Schema) => {
+export const validation = (schema) => {
   return (req, res, next) => {
     const inputs = { ...req.body, ...req.query, ...req.params };
-    const validationResult = Schema.validate(inputs, { abortEarly: false });
+    const validationResult = schema.validate(inputs, { abortEarly: false });
     if (validationResult.error) {
       return res.status(400).json({
         message: "Validation error",

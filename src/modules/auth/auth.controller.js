@@ -11,4 +11,10 @@ router.post(
   registrationService.signup
 );
 
+router.patch(
+  "/confirm-email",
+  validation(validators.confirmEmail),
+  registrationService.confirmEmail
+);
+
 export default router;

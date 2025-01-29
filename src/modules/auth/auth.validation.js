@@ -8,5 +8,14 @@ export const signup = joi
     email: generalFields.email.required(),
     password: generalFields.password.required(),
     confirmationPassword: generalFields.confirmationPassword.required(),
+    phoneNumber: generalFields.phoneNumber.required(),
+  })
+  .required();
+
+export const confirmEmail = joi
+  .object()
+  .keys({
+    email: generalFields.email.required(),
+    OTP: generalFields.OTP.required(),
   })
   .required();
