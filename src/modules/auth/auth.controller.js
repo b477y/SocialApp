@@ -1,20 +1,21 @@
 import { Router } from "express";
-import * as registrationService from "./services/registration.service.js";
+import register from "../../modules/auth/services/register.service.js";
+import login from "../../modules/auth/services/login.service.js";
+import confirmEmail from "../../modules/auth/services/confirmEmail.service.js";
 import { validation } from "../../middlewares/validation.middleware.js";
 import * as validators from "./auth.validation.js";
+import refreshToken from "./services/refreshToken.service.js";
 
 const router = Router();
 
-router.post(
-  "/signup",
-  validation(validators.signup),
-  registrationService.signup
-);
-
+router.post("/register", validation(validators.register), register);
+router.post("/login", validation(validators.login), login);
 router.patch(
   "/confirm-email",
   validation(validators.confirmEmail),
-  registrationService.confirmEmail
+  confirmEmail
 );
+
+router.get("/refresh-token", refreshToken);
 
 export default router;

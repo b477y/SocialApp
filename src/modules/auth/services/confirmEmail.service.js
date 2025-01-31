@@ -1,37 +1,10 @@
 import { asyncHandler } from "../../../utils/response/error.response.js";
-import {
-  compareHash,
-  generateHash,
-} from "../../../utils/security/hash.security.js";
+import { compareHash } from "../../../utils/security/hash.security.js";
 import { userModel } from "../../../db/models/User.model.js";
 import { emailEvent } from "../../../utils/events/email.event.js";
 import { successResponse } from "../../../utils/response/success.response.js";
 
-export const signup = asyncHandler(async (req, res, next) => {
-  const { username, email, phoneNumber, password } = req.body;
-
-  if (await userModel.findOne({ email })) {
-    return next(Error("Email exist", { cause: 409 }));
-  }
-
-  const registrationData = { username, email, phoneNumber, password };
-
-  const hashedPassword = generateHash({ plaintext: password });
-  registrationData.password = hashedPassword;
-
-  await userModel.create(registrationData);
-
-  emailEvent.emit("sendConfirmEmail", { email });
-
-  return successResponse({
-    res,
-    status: 201,
-    message: "User added successfully",
-    data: registrationData,
-  });
-});
-
-export const confirmEmail = asyncHandler(async (req, res, next) => {
+const confirmEmail = asyncHandler(async (req, res, next) => {
   const { email, OTP } = req.body;
 
   const user = await userModel.findOne({ email });
@@ -44,7 +17,10 @@ export const confirmEmail = asyncHandler(async (req, res, next) => {
     return next(new Error("Already confirmed", { cause: 409 }));
   }
 
-  if (!user.confirmEmailOTP || user.otpCreatedAt < new Date(Date.now() - 300000)) {
+  if (
+    !user.confirmEmailOTP ||
+    user.otpCreatedAt < new Date(Date.now() - 300000)
+  ) {
     emailEvent.emit("sendConfirmEmail", { email });
     return next(
       new Error(
@@ -65,9 +41,12 @@ export const confirmEmail = asyncHandler(async (req, res, next) => {
     if (user.otpAttempts + 1 >= 5) {
       emailEvent.emit("sendConfirmEmail", { email });
       return next(
-        new Error("5 invalid attempts, OTP expired, Please check the new OTP. OTP expires in 5 minutes!", {
-          cause: 400,
-        })
+        new Error(
+          "5 invalid attempts, OTP expired, Please check the new OTP. OTP expires in 5 minutes!",
+          {
+            cause: 400,
+          }
+        )
       );
     }
 
@@ -88,3 +67,5 @@ export const confirmEmail = asyncHandler(async (req, res, next) => {
     message: "Email confirmed successfully",
   });
 });
+
+export default confirmEmail;

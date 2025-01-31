@@ -1,7 +1,7 @@
 import joi from "joi";
 import { generalFields } from "../../middlewares/validation.middleware.js";
 
-export const signup = joi
+export const register = joi
   .object()
   .keys({
     username: generalFields.username.required(),
@@ -17,5 +17,13 @@ export const confirmEmail = joi
   .keys({
     email: generalFields.email.required(),
     OTP: generalFields.OTP.required(),
+  })
+  .required();
+
+export const login = joi
+  .object()
+  .keys({
+    email: generalFields.email.required(),
+    password: generalFields.password.required(),
   })
   .required();
