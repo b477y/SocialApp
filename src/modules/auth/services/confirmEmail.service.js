@@ -7,6 +7,10 @@ import { successResponse } from "../../../utils/response/success.response.js";
 const confirmEmail = asyncHandler(async (req, res, next) => {
   const { email, OTP } = req.body;
 
+  if (!email) {
+    return next(new Error("Email is required", { cause: 401 }));
+  }
+
   const user = await userModel.findOne({ email });
 
   if (!user) {
@@ -21,7 +25,7 @@ const confirmEmail = asyncHandler(async (req, res, next) => {
     !user.confirmEmailOTP ||
     user.otpCreatedAt < new Date(Date.now() - 300000)
   ) {
-    emailEvent.emit("sendConfirmEmail", { email });
+    emailEvent.emit("sendConfirmEmail", { id: user._id, email });
     return next(
       new Error(
         "OTP has expired. A new OTP sent to your email please check it. OTP expires in 5 minutes!",
@@ -39,7 +43,7 @@ const confirmEmail = asyncHandler(async (req, res, next) => {
     await userModel.updateOne({ email }, { $inc: { otpAttempts: 1 } });
 
     if (user.otpAttempts + 1 >= 5) {
-      emailEvent.emit("sendConfirmEmail", { email });
+      emailEvent.emit("sendConfirmEmail", { id: user._id, email });
       return next(
         new Error(
           "5 invalid attempts, OTP expired, Please check the new OTP. OTP expires in 5 minutes!",

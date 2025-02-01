@@ -2,19 +2,41 @@ import { EventEmitter } from "node:events";
 import sendEmail from "../email/send.email.js";
 import { userModel } from "../../db/models/User.model.js";
 import verifyAccountTemplate from "../email/template/verifyAccount.template.js";
+import resetPasswordTemplate from "../email/template/resetPassword.template.js";
 import generateOTP from "../../utils/email/generateOTP.js";
 
 export const emailEvent = new EventEmitter();
 
-emailEvent.on("sendConfirmEmail", async (data) => {
-  const { email } = data;
+export const emailSubject = {
+  confirmEmail: "Confirm email",
+  resetPassword: "Reset password",
+};
+
+export const sendOTP = async ({ data, subject, template } = {}) => {
+  const { id, email } = data;
+
   const { hashedOTP, OTP } = generateOTP();
 
+  let updateData = {};
+
+  switch (subject) {
+    case emailSubject.confirmEmail:
+      updateData = { confirmEmailOTP: hashedOTP };
+      break;
+
+    case emailSubject.resetPassword:
+      updateData = { resetPasswordOTP: hashedOTP };
+      break;
+
+    default:
+      break;
+  }
+
   await userModel.updateOne(
-    { email },
+    { _id: id },
     {
       $set: {
-        confirmEmailOTP: hashedOTP,
+        ...updateData,
         otpCreatedAt: Date.now(),
         otpAttempts: 0,
       },
@@ -23,17 +45,31 @@ emailEvent.on("sendConfirmEmail", async (data) => {
 
   setTimeout(async () => {
     await userModel.updateOne(
-      { email, otpCreatedAt: { $lte: new Date(Date.now() - 300000) } },
+      { email, otpCreatedAt: { $lte: Date.now() - 300000 } },
       {
         $set: { otpAttempts: 0 },
-        $unset: { confirmEmailOTP: 1, otpCreatedAt: 1 },
+        $unset: { [Object.keys(updateData)[0]]: 1, otpCreatedAt: 1 },
       }
     );
   }, 300000);
 
-  const html = verifyAccountTemplate({ OTP });
+  const html = template({ OTP });
 
-  await sendEmail({ to: email, subject: "Confirm Email", html });
+  await sendEmail({ to: email, subject, html });
+};
+
+emailEvent.on("sendConfirmEmail", async (data) => {
+  await sendOTP({
+    data,
+    subject: emailSubject.confirmEmail,
+    template: verifyAccountTemplate,
+  });
 });
 
-
+emailEvent.on("forgetPassword", async (data) => {
+  await sendOTP({
+    data,
+    subject: emailSubject.resetPassword,
+    template: resetPasswordTemplate,
+  });
+});

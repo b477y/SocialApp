@@ -18,15 +18,16 @@ const signup = asyncHandler(async (req, res, next) => {
   const hashedPassword = generateHash({ plaintext: password });
   registrationData.password = hashedPassword;
 
-  await userModel.create(registrationData);
+  const newUser = await userModel.create(registrationData);
 
-  emailEvent.emit("sendConfirmEmail", { email });
+  emailEvent.emit("sendConfirmEmail", { id: newUser._id, email });
 
   return successResponse({
     res,
     status: 201,
-    message: "User added successfully",
-    data: registrationData,
+    message:
+      "User added successfully, Please check your email to verify your account",
+    data: newUser,
   });
 });
 

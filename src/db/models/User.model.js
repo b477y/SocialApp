@@ -18,6 +18,7 @@ const userSchema = new Schema(
       unique: true,
     },
     confirmEmailOTP: String,
+    resetPasswordOTP: String,
     otpCreatedAt: {
       type: Date,
       default: Date.now,
