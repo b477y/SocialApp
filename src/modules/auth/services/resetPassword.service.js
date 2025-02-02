@@ -6,6 +6,7 @@ import {
   compareHash,
   generateHash,
 } from "../../../utils/security/hash.security.js";
+import * as dbService from "../../../db/db.service.js";
 
 const resetPassword = asyncHandler(async (req, res, next) => {
   const { email, OTP, password, confirmationPassword } = req.body;
@@ -42,7 +43,10 @@ const resetPassword = asyncHandler(async (req, res, next) => {
     );
   }
 
-  const user = await userModel.findOne({ email, isDeleted: false });
+  const user = await dbService.findOne({
+    model: userModel,
+    filter: { email, isDeleted: false },
+  });
 
   if (!user) {
     return next(
@@ -56,7 +60,11 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   }
 
   if (!compareHash({ plaintext: OTP, encryptedText: user.resetPasswordOTP })) {
-    await userModel.updateOne({ email }, { $inc: { otpAttempts: 1 } });
+    await dbService.updateOne({
+      model: userModel,
+      filter: { email },
+      incData: { otpAttempts: 1 },
+    });
 
     if (user.otpAttempts + 1 >= 5) {
       emailEvent.emit("forgetPassword", { id: user._id, email });
@@ -73,19 +81,18 @@ const resetPassword = asyncHandler(async (req, res, next) => {
     return next(new Error("OTP is not correct", { cause: 400 }));
   }
 
-  await userModel.updateOne(
-    { email },
-    {
-      $set: {
-        password: generateHash({
-          plaintext: password,
-          saltRounds: parseInt(process.env.SALT_ROUNDS),
-          changeCredentialsTime: Date.now(),
-        }),
-      },
-      $unset: { resetPasswordOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
-    }
-  );
+  await dbService.updateOne({
+    model: userModel,
+    filter: { email },
+    setData: {
+      password: generateHash({
+        plaintext: password,
+        saltRounds: parseInt(process.env.SALT_ROUNDS),
+        changeCredentialsTime: Date.now(),
+      }),
+    },
+    unsetData: { resetPasswordOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
+  });
 
   return successResponse({
     res,

@@ -5,6 +5,7 @@ import {
   generateToken,
   verifyToken,
 } from "../../../utils/security/token.security.js";
+import * as dbService from "../../../db/db.service.js";
 
 const refreshToken = asyncHandler(async (req, res, next) => {
   const { authorization } = req.headers;
@@ -12,7 +13,7 @@ const refreshToken = asyncHandler(async (req, res, next) => {
   if (!authorization) {
     return next(new Error("Authorization header is required", { cause: 401 }));
   }
-  
+
   const [bearer, token] = authorization?.split(" ") || [];
 
   if (!bearer || !token) {
@@ -40,7 +41,10 @@ const refreshToken = asyncHandler(async (req, res, next) => {
     return next(new Error("In-valid token payload", { cause: 401 })); // 401 => unauthorized account
   }
 
-  const user = await userModel.findOne({ _id: decoded.id, isDeleted: false });
+  const user = await dbService.findOne({
+    model: userModel,
+    filter: { _id: decoded.id, isDeleted: false },
+  });
 
   if (!user) {
     return next(new Error("Not registered account", { cause: 404 }));

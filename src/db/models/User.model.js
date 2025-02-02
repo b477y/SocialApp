@@ -24,7 +24,13 @@ const userSchema = new Schema(
       type: Date,
       default: Date.now,
     },
-    otpAttempts: { type: Number, default: 0, max: 5 },
+    otpAttempts: {
+      type: Number,
+      default: (data) => {
+        return data?.provider === providerTypes.google ? undefined : 0;
+      },
+      max: 5,
+    },
     password: {
       type: String,
       required: (data) => {
@@ -40,7 +46,7 @@ const userSchema = new Schema(
     },
     address: String,
     DOB: Date,
-    image: String,
+    picture: String,
     coverImages: [String],
     gender: {
       type: String,

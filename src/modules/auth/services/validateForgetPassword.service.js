@@ -23,7 +23,10 @@ const validateForgetPassword = asyncHandler(async (req, res, next) => {
     );
   }
 
-  const user = await userModel.findOne({ email, isDeleted: false });
+  const user = await dbService.findOne({
+    model: userModel,
+    filter: { email, isDeleted: false },
+  });
 
   if (!user) {
     return next(
@@ -45,7 +48,11 @@ const validateForgetPassword = asyncHandler(async (req, res, next) => {
   }
 
   if (!compareHash({ plaintext: OTP, encryptedText: user.resetPasswordOTP })) {
-    await userModel.updateOne({ email }, { $inc: { otpAttempts: 1 } });
+    await dbService.updateOne({
+      model: userModel,
+      filter: { email },
+      incData: { otpAttempts: 1 },
+    });
 
     if (user.otpAttempts + 1 >= 5) {
       emailEvent.emit("forgetPassword", { id: user._id, email });
@@ -62,12 +69,11 @@ const validateForgetPassword = asyncHandler(async (req, res, next) => {
     return next(new Error("OTP is not correct", { cause: 400 }));
   }
 
-  await userModel.updateOne(
-    { email },
-    {
-      $unset: { resetPasswordOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
-    }
-  );
+  await dbService.updateOne({
+    model: userModel,
+    filter: { email },
+    unsetData: { resetPasswordOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
+  });
 
   return successResponse({
     res,

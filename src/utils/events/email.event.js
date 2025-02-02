@@ -4,6 +4,7 @@ import { userModel } from "../../db/models/User.model.js";
 import verifyAccountTemplate from "../email/template/verifyAccount.template.js";
 import resetPasswordTemplate from "../email/template/resetPassword.template.js";
 import generateOTP from "../../utils/email/generateOTP.js";
+import * as dbService from "../../db/db.service.js";
 
 export const emailEvent = new EventEmitter();
 
@@ -32,25 +33,22 @@ export const sendOTP = async ({ data, subject, template } = {}) => {
       break;
   }
 
-  await userModel.updateOne(
-    { _id: id },
-    {
-      $set: {
-        ...updateData,
-        otpCreatedAt: Date.now(),
-        otpAttempts: 0,
-      },
-    }
-  );
+  await dbService.findByIdAndUpdate({
+    model: userModel,
+    id,
+    setData: { ...updateData, otpCreatedAt: Date.now(), otpAttempts: 0 },
+  });
 
   setTimeout(async () => {
-    await userModel.updateOne(
-      { email, otpCreatedAt: { $lte: Date.now() - 300000 } },
-      {
-        $set: { otpAttempts: 0 },
-        $unset: { [Object.keys(updateData)[0]]: 1, otpCreatedAt: 1 },
-      }
-    );
+    await dbService.updateOne({
+      model: userModel,
+      filter: {
+        email,
+        otpCreatedAt: { $lte: Date.now() - 300000 },
+      },
+      setData: { otpAttempts: 0 },
+      unsetData: { [Object.keys(updateData)[0]]: 1, otpCreatedAt: 1 },
+    });
   }, 300000);
 
   const html = template({ OTP });

@@ -7,6 +7,7 @@ import {
   userModel,
 } from "../../../db/models/User.model.js";
 import { generateToken } from "../../../utils/security/token.security.js";
+import * as dbService from "../../../db/db.service.js";
 
 const loginWithGmail = asyncHandler(async (req, res, next) => {
   const { idToken } = req.body;
@@ -26,19 +27,27 @@ const loginWithGmail = asyncHandler(async (req, res, next) => {
     return next(new Error("In-valid account", { cause: 400 }));
   }
 
-  let user = await userModel.findOne({ email: payload.email });
+  let user = await dbService.findOne({
+    model: userModel,
+    filter: { email: payload.email },
+  });
+
   let statusCode;
   let message;
 
   if (!user) {
     statusCode = 201;
     message = "Registered & logged in successfully";
-    user = await userModel.create({
-      username: payload.name,
-      email: payload.email,
-      confirmEmail: payload.email_verified,
-      picture: payload.picture,
-      provider: providerTypes.google,
+
+    user = await dbService.create({
+      model: userModel,
+      data: {
+        username: payload.name,
+        email: payload.email,
+        confirmEmail: payload.email_verified,
+        picture: payload.picture,
+        provider: providerTypes.google,
+      },
     });
   }
 

@@ -3,22 +3,26 @@ import { generateHash } from "../../../utils/security/hash.security.js";
 import { userModel } from "../../../db/models/User.model.js";
 import { emailEvent } from "../../../utils/events/email.event.js";
 import { successResponse } from "../../../utils/response/success.response.js";
+import * as dbService from "../../../db/db.service.js";
 
-const signup = asyncHandler(async (req, res, next) => {
+const register = asyncHandler(async (req, res, next) => {
   const { username, email, phoneNumber, password } = req.body;
 
-  const user = await userModel.findOne({ email });
+  const user = await dbService.findOne({ model: userModel, filter: { email } });
 
   if (user) {
     return next(Error("Email exist", { cause: 409 }));
   }
 
-  const registrationData = { username, email, phoneNumber, password };
+  const data = { username, email, phoneNumber, password };
 
   const hashedPassword = generateHash({ plaintext: password });
-  registrationData.password = hashedPassword;
+  data.password = hashedPassword;
 
-  const newUser = await userModel.create(registrationData);
+  const newUser = await dbService.create({
+    model: userModel,
+    data,
+  });
 
   emailEvent.emit("sendConfirmEmail", { id: newUser._id, email });
 
@@ -31,4 +35,4 @@ const signup = asyncHandler(async (req, res, next) => {
   });
 });
 
-export default signup;
+export default register;

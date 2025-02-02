@@ -2,6 +2,7 @@ import { userModel } from "../../../db/models/User.model.js";
 import { emailEvent } from "../../../utils/events/email.event.js";
 import { asyncHandler } from "../../../utils/response/error.response.js";
 import { successResponse } from "../../../utils/response/success.response.js";
+import * as dbService from "../../../db/db.service.js";
 
 const forgetPassword = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
@@ -10,7 +11,10 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
     return next(new Error("Email is required", { cause: 401 }));
   }
 
-  const user = await userModel.findOne({ email, isDeleted: false });
+  const user = await dbService.findOne({
+    model: userModel,
+    filter: { email, isDeleted: false },
+  });
 
   if (!user) {
     return next(new Error("In-valid email address", { cause: 404 }));

@@ -7,13 +7,14 @@ import {
 } from "../../../db/models/User.model.js";
 import { successResponse } from "../../../utils/response/success.response.js";
 import { generateToken } from "../../../utils/security/token.security.js";
+import * as dbService from "../../../db/db.service.js";
 
 const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = await userModel.findOne({
-    email,
-    provider: providerTypes.system,
+  const user = await dbService.findOne({
+    model: userModel,
+    filter: { email, provider: providerTypes.system },
   });
 
   if (!user) {

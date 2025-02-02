@@ -3,6 +3,7 @@ import { compareHash } from "../../../utils/security/hash.security.js";
 import { userModel } from "../../../db/models/User.model.js";
 import { emailEvent } from "../../../utils/events/email.event.js";
 import { successResponse } from "../../../utils/response/success.response.js";
+import * as dbService from "../../../db/db.service.js";
 
 const confirmEmail = asyncHandler(async (req, res, next) => {
   const { email, OTP } = req.body;
@@ -11,7 +12,7 @@ const confirmEmail = asyncHandler(async (req, res, next) => {
     return next(new Error("Email is required", { cause: 401 }));
   }
 
-  const user = await userModel.findOne({ email });
+  const user = await dbService.findOne({ model: userModel, filter: { email } });
 
   if (!user) {
     return next(new Error("User doesn't exist", { cause: 404 }));
@@ -40,7 +41,11 @@ const confirmEmail = asyncHandler(async (req, res, next) => {
       encryptedText: user.confirmEmailOTP,
     })
   ) {
-    await userModel.updateOne({ email }, { $inc: { otpAttempts: 1 } });
+    await dbService.updateOne({
+      model: userModel,
+      filter: { email },
+      incData: { otpAttempts: 1 },
+    });
 
     if (user.otpAttempts + 1 >= 5) {
       emailEvent.emit("sendConfirmEmail", { id: user._id, email });
@@ -57,13 +62,12 @@ const confirmEmail = asyncHandler(async (req, res, next) => {
     return next(new Error("OTP is not correct", { cause: 400 }));
   }
 
-  await userModel.updateOne(
-    { email },
-    {
-      $set: { confirmEmail: true },
-      $unset: { confirmEmailOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
-    }
-  );
+  await dbService.updateOne({
+    model: userModel,
+    filter: { email },
+    setData: { confirmEmail: true },
+    unsetData: { confirmEmailOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
+  });
 
   return successResponse({
     res,
