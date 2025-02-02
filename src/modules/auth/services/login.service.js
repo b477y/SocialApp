@@ -1,13 +1,20 @@
 import { asyncHandler } from "../../../utils/response/error.response.js";
 import { compareHash } from "../../../utils/security/hash.security.js";
-import { roleTypes, userModel } from "../../../db/models/User.model.js";
+import {
+  providerTypes,
+  roleTypes,
+  userModel,
+} from "../../../db/models/User.model.js";
 import { successResponse } from "../../../utils/response/success.response.js";
 import { generateToken } from "../../../utils/security/token.security.js";
 
 const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = await userModel.findOne({ email });
+  const user = await userModel.findOne({
+    email,
+    provider: providerTypes.system,
+  });
 
   if (!user) {
     return next(Error("User doesn't exist", { cause: 404 }));
@@ -42,7 +49,7 @@ const login = asyncHandler(async (req, res, next) => {
     res,
     status: 200,
     message: "Logged in successfully",
-    data: { token: { ACCESS_TOKEN, REFRESH_TOKEN } },
+    data: { TOKEN: { ACCESS_TOKEN, REFRESH_TOKEN } },
   });
 });
 

@@ -2,6 +2,7 @@ import mongoose, { Schema, model } from "mongoose";
 
 export const genderTypes = { male: "male", female: "female" };
 export const roleTypes = { user: "user", admin: "admin" };
+export const providerTypes = { google: "Google", system: "System" };
 
 const userSchema = new Schema(
   {
@@ -26,12 +27,16 @@ const userSchema = new Schema(
     otpAttempts: { type: Number, default: 0, max: 5 },
     password: {
       type: String,
-      required: true,
+      required: (data) => {
+        return data?.provider === providerTypes.google ? false : true;
+      },
     },
     phoneNumber: {
       type: String,
-      required: true,
       unique: true,
+      required: (data) => {
+        return data?.provider === providerTypes.google ? false : true;
+      },
     },
     address: String,
     DOB: Date,
@@ -54,6 +59,11 @@ const userSchema = new Schema(
     isDeleted: {
       type: Boolean,
       default: false,
+    },
+    provider: {
+      type: String,
+      enum: Object.values(providerTypes),
+      default: providerTypes.system,
     },
     changeCredentialsTime: Date,
   },

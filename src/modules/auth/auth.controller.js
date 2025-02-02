@@ -8,6 +8,7 @@ import refreshToken from "./services/refreshToken.service.js";
 import forgetPassword from "./services/forgetPassword.service.js";
 import validateForgetPassword from "./services/validateForgetPassword.js";
 import resetPassword from "./services/resetPassword.service.js";
+import loginWithGmail from "./services/loginWithGmail.service.js";
 
 const router = Router();
 
@@ -38,5 +39,7 @@ router.patch(
   validation(validators.resetPassword),
   resetPassword
 );
+
+router.post("/login-with-gmail", loginWithGmail);
 
 export default router;
