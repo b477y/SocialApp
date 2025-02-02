@@ -51,7 +51,9 @@ const validateForgetPassword = asyncHandler(async (req, res, next) => {
     await dbService.updateOne({
       model: userModel,
       filter: { email },
-      incData: { otpAttempts: 1 },
+      data: {
+        $inc: { otpAttempts: 1 },
+      },
     });
 
     if (user.otpAttempts + 1 >= 5) {
@@ -72,7 +74,9 @@ const validateForgetPassword = asyncHandler(async (req, res, next) => {
   await dbService.updateOne({
     model: userModel,
     filter: { email },
-    unsetData: { resetPasswordOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
+    data: {
+      $unset: { resetPasswordOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
+    },
   });
 
   return successResponse({

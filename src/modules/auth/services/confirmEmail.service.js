@@ -44,7 +44,7 @@ const confirmEmail = asyncHandler(async (req, res, next) => {
     await dbService.updateOne({
       model: userModel,
       filter: { email },
-      incData: { otpAttempts: 1 },
+      data: { $inc: { otpAttempts: 1 } },
     });
 
     if (user.otpAttempts + 1 >= 5) {
@@ -65,8 +65,9 @@ const confirmEmail = asyncHandler(async (req, res, next) => {
   await dbService.updateOne({
     model: userModel,
     filter: { email },
-    setData: { confirmEmail: true },
-    unsetData: { confirmEmailOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
+    data: {
+    $set: { confirmEmail: true },
+    $unset: { confirmEmailOTP: 1, otpCreatedAt: 1, otpAttempts: 1 }},
   });
 
   return successResponse({

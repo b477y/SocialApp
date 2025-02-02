@@ -1,7 +1,7 @@
-import mongoose, { Schema, model } from "mongoose";
+import mongoose, { Schema, Types, model } from "mongoose";
 
-export const genderTypes = { male: "male", female: "female" };
-export const roleTypes = { user: "user", admin: "admin" };
+export const genderTypes = { male: "Male", female: "Female" };
+export const roleTypes = { user: "User", admin: "Admin" };
 export const providerTypes = { google: "Google", system: "System" };
 
 const userSchema = new Schema(
@@ -18,12 +18,12 @@ const userSchema = new Schema(
       required: true,
       unique: true,
     },
-    confirmEmailOTP: String,
+    confirmEmailOTP: { type: String },
     resetPasswordOTP: String,
     otpCreatedAt: {
       type: Date,
       default: (data) => {
-        return data?.provider === providerTypes.google ? undefined : Date.now;
+        return data?.provider === providerTypes.google ? undefined : Date.now();
       },
     },
     otpAttempts: {
@@ -74,6 +74,12 @@ const userSchema = new Schema(
       default: providerTypes.system,
     },
     changeCredentialsTime: Date,
+    viewers: [
+      {
+        viewer: { type: Types.ObjectId, ref: "User" },
+        time: Date,
+      },
+    ],
   },
   { timestamps: true }
 );

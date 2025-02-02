@@ -1,10 +1,6 @@
 import { asyncHandler } from "../utils/response/error.response.js";
 import { decodeToken, tokenTypes } from "../utils/security/token.security.js";
-
-export const accessRoles = {
-  admin: "Admin",
-  user: "User",
-};
+import { roleTypes } from "../db/models/User.model.js";
 
 export const authentication = () => {
   return asyncHandler(async (req, res, next) => {

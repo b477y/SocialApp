@@ -63,7 +63,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
     await dbService.updateOne({
       model: userModel,
       filter: { email },
-      incData: { otpAttempts: 1 },
+      data: { $inc: { otpAttempts: 1 } },
     });
 
     if (user.otpAttempts + 1 >= 5) {
@@ -84,14 +84,16 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   await dbService.updateOne({
     model: userModel,
     filter: { email },
-    setData: {
-      password: generateHash({
-        plaintext: password,
-        saltRounds: parseInt(process.env.SALT_ROUNDS),
-        changeCredentialsTime: Date.now(),
-      }),
+    data: {
+      $set: {
+        password: generateHash({
+          plaintext: password,
+          saltRounds: parseInt(process.env.SALT_ROUNDS),
+          changeCredentialsTime: Date.now(),
+        }),
+      },
+      $unset: { resetPasswordOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
     },
-    unsetData: { resetPasswordOTP: 1, otpCreatedAt: 1, otpAttempts: 1 },
   });
 
   return successResponse({

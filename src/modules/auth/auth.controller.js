@@ -9,6 +9,7 @@ import forgetPassword from "./services/forgetPassword.service.js";
 import validateForgetPassword from "./services/validateForgetPassword.service.js";
 import resetPassword from "./services/resetPassword.service.js";
 import loginWithGmail from "./services/loginWithGmail.service.js";
+import { roleTypes } from "../../db/models/User.model.js";
 
 const router = Router();
 

@@ -1,4 +1,11 @@
 import joi from "joi";
+import { Types } from "mongoose";
+
+export const isValidObjectId = (value, helper) => {
+  return Types.ObjectId.isValid(value)
+    ? true
+    : helper.message("In-valid object Id");
+};
 
 export const generalFields = {
   username: joi.string().min(2).max(50).trim(),
@@ -13,6 +20,7 @@ export const generalFields = {
   confirmationPassword: joi.string().valid(joi.ref("password")),
   phoneNumber: joi.string().pattern(new RegExp(/^(002|\+2)?01[0125][0-9]{8}$/)),
   OTP: joi.string().pattern(new RegExp(/^\d{4}$/)),
+  id: joi.string().custom(isValidObjectId),
 };
 
 export const validation = (schema) => {

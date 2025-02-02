@@ -36,7 +36,7 @@ export const sendOTP = async ({ data, subject, template } = {}) => {
   await dbService.findByIdAndUpdate({
     model: userModel,
     id,
-    setData: { ...updateData, otpCreatedAt: Date.now(), otpAttempts: 0 },
+    data: { ...updateData, otpCreatedAt: Date.now(), otpAttempts: 0 },
   });
 
   setTimeout(async () => {
@@ -46,8 +46,10 @@ export const sendOTP = async ({ data, subject, template } = {}) => {
         email,
         otpCreatedAt: { $lte: Date.now() - 300000 },
       },
-      setData: { otpAttempts: 0 },
-      unsetData: { [Object.keys(updateData)[0]]: 1, otpCreatedAt: 1 },
+      data: {
+        $set: { otpAttempts: 0 },
+        $unset: { [Object.keys(updateData)[0]]: 1, otpCreatedAt: 1 },
+      },
     });
   }, 300000);
 

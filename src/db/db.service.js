@@ -39,18 +39,13 @@ export const findById = async ({
 export const findByIdAndUpdate = async ({
   model,
   id = "",
-  setData = {},
-  unsetData = {},
+  data = {},
   options = {},
   select = "",
   populate = [],
 } = {}) => {
   return await model
-    .findByIdAndUpdate(
-      id,
-      { $set: setData, $unset: unsetData },
-      { new: true, ...options }
-    )
+    .findByIdAndUpdate(id, data, { new: true, ...options })
     .select(select)
     .populate(populate);
 };
@@ -58,18 +53,13 @@ export const findByIdAndUpdate = async ({
 export const findOneAndUpdate = async ({
   model,
   filter = {},
-  setData = {},
-  unsetData = {},
+  data = {},
   options = {},
   select = "",
   populate = [],
 } = {}) => {
   return await model
-    .findOneAndUpdate(
-      filter,
-      { $set: setData, $unset: unsetData },
-      { new: true, ...options }
-    )
+    .findOneAndUpdate(filter, data, { new: true, ...options })
     .select(select)
     .populate(populate);
 };
@@ -77,30 +67,19 @@ export const findOneAndUpdate = async ({
 export const updateOne = async ({
   model,
   filter = {},
-  setData = {},
-  unsetData = {},
-  incData = {},
+  data = {},
   options = {},
 } = {}) => {
-  return await model.updateOne(
-    filter,
-    { $set: setData, $unset: unsetData, $inc: incData },
-    { ...options }
-  );
+  return await model.updateOne(filter, data, options);
 };
 
 export const updateMany = async ({
   model,
   filter = {},
-  setData = {},
-  unsetData = {},
+  data = {},
   options = {},
 } = {}) => {
-  return await model.updateMany(
-    filter,
-    { $set: setData, $unset: unsetData },
-    { ...options }
-  );
+  return await model.updateMany(filter, data, options); 
 };
 
 export const findByIdAndDelete = async ({
