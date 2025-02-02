@@ -50,7 +50,7 @@ const login = asyncHandler(async (req, res, next) => {
     res,
     status: 200,
     message: "Logged in successfully",
-    data: { TOKEN: { ACCESS_TOKEN, REFRESH_TOKEN } },
+    data: { Tokens: { ACCESS_TOKEN, REFRESH_TOKEN } },
   });
 });
 

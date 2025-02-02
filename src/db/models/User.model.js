@@ -22,7 +22,9 @@ const userSchema = new Schema(
     resetPasswordOTP: String,
     otpCreatedAt: {
       type: Date,
-      default: Date.now,
+      default: (data) => {
+        return data?.provider === providerTypes.google ? undefined : Date.now;
+      },
     },
     otpAttempts: {
       type: Number,

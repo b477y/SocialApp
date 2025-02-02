@@ -1,11 +1,11 @@
 import { roleTypes, userModel } from "../../../db/models/User.model.js";
 import { asyncHandler } from "../../../utils/response/error.response.js";
 import { successResponse } from "../../../utils/response/success.response.js";
+import { generateToken } from "../../../utils/security/token.security.js";
 import {
-  generateToken,
-  verifyToken,
+  decodeToken,
+  tokenTypes,
 } from "../../../utils/security/token.security.js";
-import * as dbService from "../../../db/db.service.js";
 
 const refreshToken = asyncHandler(async (req, res, next) => {
   const { authorization } = req.headers;
@@ -14,49 +14,11 @@ const refreshToken = asyncHandler(async (req, res, next) => {
     return next(new Error("Authorization header is required", { cause: 401 }));
   }
 
-  const [bearer, token] = authorization?.split(" ") || [];
-
-  if (!bearer || !token) {
-    return next(new Error("Invalid authorization format", { cause: 401 }));
-  }
-
-  let secretKey = "";
-
-  switch (bearer) {
-    case "Admin":
-      secretKey = process.env.ADMIN_REFRESH_TOKEN_SK;
-      break;
-
-    case "Bearer":
-      secretKey = process.env.USER_REFRESH_TOKEN_SK;
-      break;
-
-    default:
-      break;
-  }
-
-  let decoded = verifyToken({ token, secretKey });
-
-  if (!decoded?.id) {
-    return next(new Error("In-valid token payload", { cause: 401 })); // 401 => unauthorized account
-  }
-
-  const user = await dbService.findOne({
-    model: userModel,
-    filter: { _id: decoded.id, isDeleted: false },
+  const user = await decodeToken({
+    authorization,
+    tokenType: tokenTypes.refresh,
+    next,
   });
-
-  if (!user) {
-    return next(new Error("Not registered account", { cause: 404 }));
-  }
-
-  if (user.changeCredentialsTime?.getTime() >= decoded.iat * 1000) {
-    return next(new Error("In-valid login credentials", { cause: 400 }));
-  }
-
-  if (Date.now() / 1000 - decoded.iat > 31536000) {
-    return next(new Error("Token has expired", { cause: 401 }));
-  }
 
   const ACCESS_TOKEN = generateToken({
     payload: { id: user._id },
@@ -78,8 +40,8 @@ const refreshToken = asyncHandler(async (req, res, next) => {
   return successResponse({
     res,
     status: 200,
-    message: "Logged in successfully",
-    data: { token: { ACCESS_TOKEN, REFRESH_TOKEN } },
+    message: "Tokens refreshed successfully",
+    data: { Tokens: { ACCESS_TOKEN, REFRESH_TOKEN } },
   });
 });
 
