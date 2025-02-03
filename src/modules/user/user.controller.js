@@ -16,4 +16,18 @@ router.get(
   profileService.sharedProfile
 );
 
+router.patch(
+  "/profile/update-email",
+  validation(validators.updateEmail),
+  authentication(),
+  profileService.updateEmail
+);
+
+router.patch(
+  "/profile/reset-email",
+  validation(validators.resetEmail),
+  authentication(),
+  profileService.resetEmail
+);
+
 export default router;

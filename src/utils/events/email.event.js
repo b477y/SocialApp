@@ -1,8 +1,9 @@
 import { EventEmitter } from "node:events";
 import sendEmail from "../email/send.email.js";
 import { userModel } from "../../db/models/User.model.js";
-import verifyAccountTemplate from "../email/template/verifyAccount.template.js";
-import resetPasswordTemplate from "../email/template/resetPassword.template.js";
+import verifyAccountTemplate from "../email/templates/verifyAccount.template.js";
+import resetPasswordTemplate from "../email/templates/resetPassword.template.js";
+import updateEmailTemplate from "../email/templates/updateEmail.template.js";
 import generateOTP from "../../utils/email/generateOTP.js";
 import * as dbService from "../../db/db.service.js";
 
@@ -11,6 +12,7 @@ export const emailEvent = new EventEmitter();
 export const emailSubject = {
   confirmEmail: "Confirm email",
   resetPassword: "Reset password",
+  updateEmail: "Update email",
 };
 
 export const sendOTP = async ({ data, subject, template } = {}) => {
@@ -27,6 +29,10 @@ export const sendOTP = async ({ data, subject, template } = {}) => {
 
     case emailSubject.resetPassword:
       updateData = { resetPasswordOTP: hashedOTP };
+      break;
+
+    case emailSubject.updateEmail:
+      updateData = { temporaryEmailOTP: hashedOTP };
       break;
 
     default:
@@ -71,5 +77,13 @@ emailEvent.on("forgetPassword", async (data) => {
     data,
     subject: emailSubject.resetPassword,
     template: resetPasswordTemplate,
+  });
+});
+
+emailEvent.on("updateEmail", async (data) => {
+  await sendOTP({
+    data,
+    subject: emailSubject.updateEmail,
+    template: updateEmailTemplate,
   });
 });

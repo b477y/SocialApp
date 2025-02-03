@@ -18,6 +18,10 @@ const userSchema = new Schema(
       required: true,
       unique: true,
     },
+    temporaryEmail: {
+      type: String,
+    },
+    temporaryEmailOTP: { type: String },
     confirmEmailOTP: { type: String },
     resetPasswordOTP: String,
     otpCreatedAt: {
