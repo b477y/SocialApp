@@ -32,3 +32,14 @@ export const updatePassword = joi
     confirmationPassword: generalFields.confirmationPassword.required(),
   })
   .required();
+
+export const updateProfile = joi
+  .object()
+  .keys({
+    username: generalFields.username,
+    DOB: generalFields.DOB,
+    gender: generalFields.gender,
+    phoneNumber: generalFields.phoneNumber,
+    address: generalFields.address,
+  })
+  .required();

@@ -1,5 +1,6 @@
 import joi from "joi";
 import { Types } from "mongoose";
+import { genderTypes } from "../db/models/User.model.js";
 
 export const isValidObjectId = (value, helper) => {
   return Types.ObjectId.isValid(value)
@@ -18,7 +19,13 @@ export const generalFields = {
     .string()
     .regex(new RegExp(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/)),
   confirmationPassword: joi.string().valid(joi.ref("password")),
+  DOB: joi.date().less("now"),
+  gender: joi
+    .string()
+    .valid(...Object.values(genderTypes))
+    .insensitive(true),
   phoneNumber: joi.string().pattern(new RegExp(/^(002|\+2)?01[0125][0-9]{8}$/)),
+  address: joi.string(),
   OTP: joi.string().pattern(new RegExp(/^\d{4}$/)),
   id: joi.string().custom(isValidObjectId),
 };

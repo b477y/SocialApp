@@ -187,3 +187,25 @@ export const updatePassword = asyncHandler(async (req, res, next) => {
     message: "Password updated successfully",
   });
 });
+
+export const updateProfile = asyncHandler(async (req, res, next) => {
+  const { username, DOB, gender, phoneNumber, address } = req.body;
+
+  await dbService.findByIdAndUpdate({
+    model: userModel,
+    id: req.user._id,
+    data: {
+      username,
+      DOB,
+      gender,
+      phoneNumber,
+      address,
+    },
+  });
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Profile updated successfully",
+  });
+});

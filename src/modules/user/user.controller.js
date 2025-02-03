@@ -8,7 +8,6 @@ import * as validators from "./user.validation.js";
 const router = Router();
 
 router.get("/profile", authentication(), profileService.getProfile);
-
 router.get(
   "/profile/:profileId",
   validation(validators.sharedProfile),
@@ -17,19 +16,23 @@ router.get(
 );
 
 router.patch(
+  "/profile/",
+  validation(validators.updateProfile),
+  authentication(),
+  profileService.updateProfile
+);
+router.patch(
   "/profile/update-email",
   validation(validators.updateEmail),
   authentication(),
   profileService.updateEmail
 );
-
 router.patch(
   "/profile/reset-email",
   validation(validators.resetEmail),
   authentication(),
   profileService.resetEmail
 );
-
 router.patch(
   "/profile/update-password",
   validation(validators.updatePassword),
