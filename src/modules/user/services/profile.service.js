@@ -3,7 +3,10 @@ import { successResponse } from "../../../utils/response/success.response.js";
 import * as dbService from "../../../db/db.service.js";
 import { userModel } from "../../../db/models/User.model.js";
 import { emailEvent } from "../../../utils/events/email.event.js";
-import { compareHash } from "../../../utils/security/hash.security.js";
+import {
+  compareHash,
+  generateHash,
+} from "../../../utils/security/hash.security.js";
 
 export const getProfile = asyncHandler(async (req, res, next) => {
   const user = await dbService.findOne({
@@ -134,5 +137,53 @@ export const resetEmail = asyncHandler(async (req, res, next) => {
     res,
     status: 200,
     message: "Email updated successfully",
+  });
+});
+
+export const updatePassword = asyncHandler(async (req, res, next) => {
+  const { oldPassword, password, confirmationPassword } = req.body;
+
+  if (!oldPassword || !password || !confirmationPassword) {
+    return next(new Error("All inputs are required", { cause: 401 }));
+  }
+
+  if (
+    !compareHash({ plaintext: oldPassword, encryptedText: req.user.password })
+  ) {
+    return next(new Error("The old Password is not correct", { cause: 409 }));
+  }
+
+  if (oldPassword === password) {
+    return next(
+      new Error(
+        "The new password can not be the same of old password, Please enter another new password",
+        {
+          cause: 401,
+        }
+      )
+    );
+  }
+
+  if (password !== confirmationPassword) {
+    return next(
+      new Error("New password & confirmation password not matched", {
+        cause: 401,
+      })
+    );
+  }
+
+  await dbService.findByIdAndUpdate({
+    model: userModel,
+    id: req.user._id,
+    data: {
+      password: generateHash({ plaintext: password }),
+      changeCredentialsTime: Date.now(),
+    },
+  });
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Password updated successfully",
   });
 });

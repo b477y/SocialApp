@@ -23,3 +23,12 @@ export const resetEmail = joi
     email: generalFields.email.required(),
   })
   .required();
+
+export const updatePassword = joi
+  .object()
+  .keys({
+    oldPassword: generalFields.password.required(),
+    password: generalFields.password.invalid(joi.ref("oldPassword")).required(),
+    confirmationPassword: generalFields.confirmationPassword.required(),
+  })
+  .required();

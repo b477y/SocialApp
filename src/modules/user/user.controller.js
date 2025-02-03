@@ -30,4 +30,11 @@ router.patch(
   profileService.resetEmail
 );
 
+router.patch(
+  "/profile/update-password",
+  validation(validators.updatePassword),
+  authentication(),
+  profileService.updatePassword
+);
+
 export default router;
