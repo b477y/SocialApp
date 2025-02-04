@@ -16,6 +16,8 @@ const router = Router();
 
 router.get("/", authentication(), postService.getPosts);
 
+router.get("/:postId", authentication(), postService.getPost);
+
 router.post(
   "/",
   authentication(),

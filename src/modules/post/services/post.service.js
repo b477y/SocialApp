@@ -34,6 +34,34 @@ export const getPosts = asyncHandler(async (req, res, next) => {
   });
 });
 
+export const getPost = asyncHandler(async (req, res, next) => {
+  const post = await dbService.findOne({
+    model: postModel,
+    filter: { _id: req.params.postId, isDeleted: { $exists: false } },
+    populate: [
+      {
+        path: "createdBy",
+        select: "username image",
+      },
+      {
+        path: "likes",
+        select: "username image",
+      },
+    ],
+  });
+
+  if (!post) {
+    return next(new Error("Post not found", { cause: 404 }));
+  }
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Post retrieved successfully",
+    data: { post },
+  });
+});
+
 export const createPost = asyncHandler(async (req, res, next) => {
   const { content } = req.body;
 
