@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as postService from "./services/post.service.js";
-// import * as validators from "./post.validation.js";
-// import { validation } from "../../middlewares/validation.middleware.js";
+import * as validators from "./post.validation.js";
+import { validation } from "../../middlewares/validation.middleware.js";
 import { endpoint } from "./post.authorization.js";
 import {
   authentication,
@@ -28,6 +28,22 @@ router.patch(
   authorization(endpoint.updatePost),
   uploadCloudFile(fileValidations.image).array("attachment", 2),
   postService.updatePost
+);
+
+router.delete(
+  "/:postId",
+  authentication(),
+  authorization(endpoint.freezePost),
+  validation(validators.freezePost),
+  postService.freezePost
+);
+
+router.patch(
+  "/:postId/unfreeze",
+  authentication(),
+  authorization(endpoint.unfreezePost),
+  validation(validators.unfreezePost),
+  postService.unfreezePost
 );
 
 export default router;
