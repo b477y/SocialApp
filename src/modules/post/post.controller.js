@@ -22,4 +22,12 @@ router.post(
   postService.createPost
 );
 
+router.patch(
+  "/:postId",
+  authentication(),
+  authorization(endpoint.updatePost),
+  uploadCloudFile(fileValidations.image).array("attachment", 2),
+  postService.updatePost
+);
+
 export default router;
