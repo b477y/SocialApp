@@ -19,16 +19,18 @@ export const unfreezePost = joi
   })
   .required();
 
-export const like = joi
+export const reactToPost = joi
   .object()
   .keys({
     postId: generalFields.id.required(),
-  })
-  .required();
-
-export const unlike = joi
-  .object()
-  .keys({
-    postId: generalFields.id.required(),
+    action: joi
+      .string()
+      .valid("like-post", "unlike-post")
+      .insensitive()
+      .required()
+      .messages({
+        "any.only":
+          "Invalid action. Allowed values: ['like-post', 'unlike-post']",
+      }),
   })
   .required();

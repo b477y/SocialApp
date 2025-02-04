@@ -5,6 +5,5 @@ export const endpoint = {
   updatePost: [roleTypes.user],
   freezePost: Object.values(roleTypes),
   unfreezePost: Object.values(roleTypes),
-  like: [roleTypes.user],
-  unlike: [roleTypes.user],
+  reactToPost: [roleTypes.user],
 };

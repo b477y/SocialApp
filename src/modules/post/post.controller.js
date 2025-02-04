@@ -51,19 +51,11 @@ router.patch(
 );
 
 router.patch(
-  "/:postId/like-post",
+  "/:postId/react-to-post",
   authentication(),
-  authorization(endpoint.like),
-  validation(validators.like),
-  postService.likePost
-);
-
-router.patch(
-  "/:postId/unlike-post",
-  authentication(),
-  authorization(endpoint.unlike),
-  validation(validators.unlike),
-  postService.unlikePost
+  authorization(endpoint.reactToPost),
+  validation(validators.reactToPost),
+  postService.reactToPost
 );
 
 export default router;
