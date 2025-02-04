@@ -18,3 +18,17 @@ export const unfreezePost = joi
     postId: generalFields.id.required(),
   })
   .required();
+
+export const like = joi
+  .object()
+  .keys({
+    postId: generalFields.id.required(),
+  })
+  .required();
+
+export const unlike = joi
+  .object()
+  .keys({
+    postId: generalFields.id.required(),
+  })
+  .required();

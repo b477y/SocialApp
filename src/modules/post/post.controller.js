@@ -14,6 +14,8 @@ import {
 
 const router = Router();
 
+router.get("/", authentication(), postService.getPosts);
+
 router.post(
   "/",
   authentication(),
@@ -39,11 +41,27 @@ router.delete(
 );
 
 router.patch(
-  "/:postId/unfreeze",
+  "/:postId/",
   authentication(),
   authorization(endpoint.unfreezePost),
   validation(validators.unfreezePost),
   postService.unfreezePost
+);
+
+router.patch(
+  "/:postId/like-post",
+  authentication(),
+  authorization(endpoint.like),
+  validation(validators.like),
+  postService.likePost
+);
+
+router.patch(
+  "/:postId/unlike-post",
+  authentication(),
+  authorization(endpoint.unlike),
+  validation(validators.unlike),
+  postService.unlikePost
 );
 
 export default router;

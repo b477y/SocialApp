@@ -4,6 +4,35 @@ import { postModel } from "../../../db/models/Post.model.js";
 import { successResponse } from "../../../utils/response/success.response.js";
 import * as dbService from "../../../db/db.service.js";
 import { roleTypes } from "../../../db/models/User.model.js";
+import mongoose from "mongoose";
+
+export const getPosts = asyncHandler(async (req, res, next) => {
+  const posts = await dbService.find({
+    model: postModel,
+    filter: { isDeleted: { $exists: false } },
+    populate: [
+      {
+        path: "createdBy",
+        select: "username image",
+      },
+      {
+        path: "likes",
+        select: "username image",
+      },
+    ],
+  });
+
+  if (!posts.length) {
+    return next(new Error("There are no posts", { cause: 404 }));
+  }
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Posts retrieved successfully",
+    data: { posts },
+  });
+});
 
 export const createPost = asyncHandler(async (req, res, next) => {
   const { content } = req.body;
@@ -112,6 +141,68 @@ export const unfreezePost = asyncHandler(async (req, res, next) => {
         res,
         status: 200,
         message: "Post unfreezed successfully",
+        data: post,
+      })
+    : next(new Error("Post not found", { cause: 404 }));
+});
+
+export const likePost = asyncHandler(async (req, res, next) => {
+  const userId = new mongoose.Types.ObjectId(req.user._id);
+
+  const post = await postModel.findOne({
+    _id: req.params.postId,
+    isDeleted: { $exists: false },
+    likes: { $in: [userId] },
+  });
+
+  if (post) {
+    return next(new Error("Post already liked", { cause: 409 }));
+  }
+
+  const updatedPost = await dbService.findOneAndUpdate({
+    filter: {
+      _id: req.params.postId,
+      isDeleted: { $exists: false },
+    },
+    model: postModel,
+    data: {
+      $addToSet: { likes: userId },
+    },
+    options: { new: true },
+  });
+
+  if (!updatedPost) {
+    return next(new Error("Post not found", { cause: 404 }));
+  }
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Post liked successfully",
+    data: updatedPost,
+  });
+});
+
+export const unlikePost = asyncHandler(async (req, res, next) => {
+  const userId = new mongoose.Types.ObjectId(req.user._id);
+
+  const post = await dbService.findOneAndUpdate({
+    filter: {
+      _id: req.params.postId,
+      isDeleted: { $exists: false },
+    },
+    model: postModel,
+    data: {
+      $pull: { likes: userId },
+    },
+    options: { new: true },
+  });
+
+  return post
+    ? successResponse({
+        res,
+        status: 200,
+        message: "Post unliked successfully",
         data: post,
       })
     : next(new Error("Post not found", { cause: 404 }));
