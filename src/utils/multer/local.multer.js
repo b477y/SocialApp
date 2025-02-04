@@ -14,8 +14,6 @@ export const uploadFileDisk = (
   const basePath = `uploads/${customPath}`;
   const fullPath = path.resolve(`./src/${basePath}`);
 
-//   console.log({ basePath, fullPath, checkPath: fs.existsSync(fullPath) });
-
   if (!fs.existsSync(fullPath)) {
     fs.mkdirSync(fullPath, { recursive: true });
   }

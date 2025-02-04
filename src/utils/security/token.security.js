@@ -26,7 +26,11 @@ export const decodeToken = async ({
   tokenType = tokenTypes.access,
   next = {},
 } = {}) => {
-  const [bearer, token] = authorization?.split(" ") || [];
+  if (typeof authorization !== "string") {
+    return next(new Error("Invalid authorization format", { cause: 401 }));
+  }
+
+  const [bearer, token] = authorization.split(" ");
 
   if (!bearer || !token) {
     return next(new Error("Invalid authorization format", { cause: 401 }));
@@ -72,10 +76,6 @@ export const decodeToken = async ({
   if (user.changeCredentialsTime?.getTime() >= decoded.iat * 1000) {
     return next(new Error("In-valid login credentials", { cause: 400 }));
   }
-
-  // if (Date.now() / 1000 - decoded.iat > 31536000) {
-  //   return next(new Error("Token has expired", { cause: 401 }));
-  // }
 
   return user;
 };

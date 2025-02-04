@@ -28,6 +28,7 @@ export const generalFields = {
   address: joi.string(),
   OTP: joi.string().pattern(new RegExp(/^\d{4}$/)),
   id: joi.string().custom(isValidObjectId),
+  content: joi.string().min(2).max(50000).trim(),
 };
 
 export const validation = (schema) => {
