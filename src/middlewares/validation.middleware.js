@@ -33,6 +33,11 @@ export const generalFields = {
 export const validation = (schema) => {
   return (req, res, next) => {
     const inputs = { ...req.body, ...req.query, ...req.params };
+
+    if (req.file || req.files?.length >= 0) {
+      inputs.file = req.file || req.files;
+    }
+
     const validationResult = schema.validate(inputs, { abortEarly: false });
     if (validationResult.error) {
       return res.status(400).json({

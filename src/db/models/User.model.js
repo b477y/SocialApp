@@ -52,8 +52,8 @@ const userSchema = new Schema(
     },
     address: String,
     DOB: Date,
-    picture: String,
-    coverImages: [String],
+    image: { secure_url: String, public_id: String },
+    coverImages: [{ secure_url: String, public_id: String }],
     gender: {
       type: String,
       enum: Object.values(genderTypes),

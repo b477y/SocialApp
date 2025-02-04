@@ -7,6 +7,7 @@ import {
   compareHash,
   generateHash,
 } from "../../../utils/security/hash.security.js";
+import { cloud } from "../../../utils/multer/cloudinary.multer.js";
 
 export const getProfile = asyncHandler(async (req, res, next) => {
   const user = await dbService.findOne({
@@ -207,5 +208,59 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
     res,
     status: 200,
     message: "Profile updated successfully",
+  });
+});
+
+export const updateProfileImage = asyncHandler(async (req, res, next) => {
+  const { secure_url, public_id } = await cloud.uploader.upload(req.file.path, {
+    folder: `${process.env.APP_NAME}/user/${req.user._id}/profile`,
+  });
+
+  const user = await dbService.findByIdAndUpdate({
+    model: userModel,
+    id: req.user._id,
+    data: {
+      image: { secure_url, public_id },
+    },
+    options: { new: false },
+  });
+
+  if (user.image?.public_id) {
+    await cloud.uploader.destroy(user.image.public_id);
+  }
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Image uploaded successfully",
+    data: { user },
+  });
+});
+
+export const updateProfileCover = asyncHandler(async (req, res, next) => {
+  let images = [];
+
+  for (const file of req.files) {
+    const { secure_url, public_id } = await cloud.uploader.upload(file.path, {
+      folder: `${process.env.APP_NAME}/user/${req.user._id}/profile/cover`,
+    });
+
+    images.push({ secure_url, public_id });
+  }
+
+  const user = await dbService.findByIdAndUpdate({
+    model: userModel,
+    id: req.user._id,
+    data: {
+      coverImages: images,
+    },
+    options: { new: true },
+  });
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Cover image/s uploaded successfully",
+    data: { user },
   });
 });

@@ -45,7 +45,7 @@ const loginWithGmail = asyncHandler(async (req, res, next) => {
         username: payload.name,
         email: payload.email,
         confirmEmail: payload.email_verified,
-        picture: payload.picture,
+        image: payload.picture,
         provider: providerTypes.google,
       },
     });
