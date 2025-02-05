@@ -1,6 +1,6 @@
 import mongoose, { Schema, Types, model } from "mongoose";
 
-const postSchema = new Schema(
+const commentSchema = new Schema(
   {
     content: {
       type: String,
@@ -11,16 +11,17 @@ const postSchema = new Schema(
         return this.attachments?.length ? false : true;
       },
     },
+    postId: { type: Types.ObjectId, ref: "Post", required: true },
     attachments: [{ secure_url: String, public_id: String }],
-    comments: [{ type: Types.ObjectId, ref: "Comment" }],
     likes: [{ type: Types.ObjectId, ref: "User" }],
     tags: [{ type: Types.ObjectId, ref: "User" }],
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
     updatedBy: { type: Types.ObjectId, ref: "User" },
     deletedBy: { type: Types.ObjectId, ref: "User" },
-    isDeleted: Boolean,
+    deletedAt: Date,
   },
   { timestamps: true }
 );
 
-export const postModel = mongoose.models.Post || model("Post", postSchema);
+export const commentModel =
+  mongoose.models.Comment || model("Comment", commentSchema);

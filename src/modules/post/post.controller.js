@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as postService from "./services/post.service.js";
 import * as validators from "./post.validation.js";
+import commentController from "../../modules/comment/comment.controller.js";
 import { validation } from "../../middlewares/validation.middleware.js";
 import { endpoint } from "./post.authorization.js";
 import {
@@ -13,6 +14,8 @@ import {
 } from "../../utils/multer/cloud.multer.js";
 
 const router = Router();
+
+router.use("/:postId/comment", commentController);
 
 router.get("/", authentication(), postService.getPosts);
 
