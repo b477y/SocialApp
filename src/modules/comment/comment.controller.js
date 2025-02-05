@@ -22,4 +22,12 @@ router.post(
   commentService.createComment
 );
 
+router.patch(
+  "/:commentId",
+  authentication(),
+  authorization(endpoint.updateComment),
+  uploadCloudFile(fileValidations.image).array("attachment", 2),
+  commentService.updateComment
+);
+
 export default router;
