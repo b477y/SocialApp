@@ -139,7 +139,7 @@ export const freezePost = asyncHandler(async (req, res, next) => {
     ? successResponse({
         res,
         status: 200,
-        message: "Post freezed successfully",
+        message: "Post frozen successfully",
         data: post,
       })
     : next(new Error("Post not found", { cause: 404 }));
@@ -167,7 +167,7 @@ export const unfreezePost = asyncHandler(async (req, res, next) => {
     ? successResponse({
         res,
         status: 200,
-        message: "Post unfreezed successfully",
+        message: "Post unfrozen successfully",
         data: post,
       })
     : next(new Error("Post not found", { cause: 404 }));

@@ -4,13 +4,14 @@ import { commentModel } from "../../../db/models/Comment.model.js";
 import { postModel } from "../../../db/models/Post.model.js";
 import { cloud } from "../../../utils/multer/cloudinary.multer.js";
 import { successResponse } from "../../../utils/response/success.response.js";
+import { roleTypes } from "../../../db/models/User.model.js";
 
 export const createComment = asyncHandler(async (req, res, next) => {
   const { postId } = req.params;
 
   const post = await dbService.findOne({
     model: postModel,
-    filter: { _id: postId, isDeleted: { $exists: false } },
+    filter: { _id: postId, deletedAt: { $exists: false } },
   });
 
   if (!post) {
@@ -40,7 +41,7 @@ export const createComment = asyncHandler(async (req, res, next) => {
 
   const updatedPost = await dbService.updateOne({
     model: postModel,
-    filter: { _id: postId, isDeleted: { $exists: false } },
+    filter: { _id: postId, deletedAt: { $exists: false } },
     data: {
       $push: { comments: comment._id },
       createdBy: req.user._id,
@@ -69,12 +70,12 @@ export const updateComment = asyncHandler(async (req, res, next) => {
       _id: commentId,
       postId,
       createdBy: req.user._id,
-      isDeleted: { $exists: false },
+      deletedAt: { $exists: false },
     },
     populate: { path: "postId" },
   });
 
-  if (!comment || comment.postId.isDeleted)
+  if (!comment || comment.postId.deletedAt)
     return next(new Error("Comment not found", { cause: 404 }));
 
   if (req.files?.length) {
@@ -95,7 +96,7 @@ export const updateComment = asyncHandler(async (req, res, next) => {
       _id: commentId,
       postId,
       createdBy: req.user._id,
-      isDeleted: { $exists: false },
+      deletedAt: { $exists: false },
     },
     data: {
       ...req.body,
@@ -109,5 +110,108 @@ export const updateComment = asyncHandler(async (req, res, next) => {
     status: 200,
     message: "Comment updated successfully",
     data: { comment: updatedComment },
+  });
+});
+
+export const freezeComment = asyncHandler(async (req, res, next) => {
+  const { postId, commentId } = req.params;
+
+  if (!postId) return next(new Error("Post id is required", { cause: 409 }));
+
+  if (!commentId)
+    return next(new Error("Comment id is required", { cause: 409 }));
+
+  const comment = await dbService.findOne({
+    model: commentModel,
+    filter: {
+      _id: commentId,
+      postId,
+      deletedAt: { $exists: false },
+    },
+    populate: { path: "postId" },
+  });
+
+  if (!comment) {
+    return next(new Error("Invalid comment ID or not found", { cause: 404 }));
+  }
+
+  if (comment?.postId?.deletedAt) {
+    return next(
+      new Error("Cannot freeze comment: Post is deleted", { cause: 400 })
+    );
+  }
+
+  const isAuthorized =
+    comment.createdBy.toString() === req.user._id.toString() ||
+    comment?.postId?.createdBy.toString() === req.user._id.toString() ||
+    req.user.role === roleTypes.admin;
+
+  if (!isAuthorized) {
+    return next(new Error("Unauthorized or post is deleted", { cause: 403 }));
+  }
+
+  const updatedComment = await dbService.findOneAndUpdate({
+    model: commentModel,
+    filter: {
+      _id: commentId,
+      postId,
+      deletedAt: { $exists: false },
+    },
+    data: {
+      deletedAt: Date.now(),
+      deletedBy: req.user._id,
+    },
+    options: { new: true },
+  });
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Comment frozen successfully",
+    data: { comment: updatedComment },
+  });
+});
+
+export const unfreezeComment = asyncHandler(async (req, res, next) => {
+  const { postId, commentId } = req.params;
+
+  if (!postId) return next(new Error("Post id is required", { cause: 409 }));
+
+  if (!commentId)
+    return next(new Error("Comment id is required", { cause: 409 }));
+
+  const comment = await dbService.findOneAndUpdate({
+    model: commentModel,
+    filter: {
+      _id: commentId,
+      postId,
+      deletedBy: req.user._id,
+      deletedAt: { $exists: true },
+    },
+    data: {
+      $unset: {
+        deletedAt: 1,
+        deletedBy: 1,
+      },
+      updatedBy: req.user._id,
+    },
+    options: { new: true },
+  });
+
+  if (!comment) {
+    return next(new Error("Invalid comment ID or not found", { cause: 404 }));
+  }
+
+  if (comment?.postId?.deletedAt) {
+    return next(
+      new Error("Cannot unfreeze comment: Post is deleted", { cause: 400 })
+    );
+  }
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Comment unfrozen successfully",
+    data: { comment },
   });
 });

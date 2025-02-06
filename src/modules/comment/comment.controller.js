@@ -30,4 +30,18 @@ router.patch(
   commentService.updateComment
 );
 
+router.delete(
+  "/:commentId",
+  authentication(),
+  authorization(endpoint.freezeComment),
+  commentService.freezeComment
+);
+
+router.patch(
+  "/:commentId/unfreeze",
+  authentication(),
+  authorization(endpoint.unfreezeComment),
+  commentService.unfreezeComment
+);
+
 export default router;
