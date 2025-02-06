@@ -44,4 +44,11 @@ router.patch(
   commentService.unfreezeComment
 );
 
+router.patch(
+  "/:commentId/react",
+  authentication(),
+  authorization(endpoint.reactToComment),
+  commentService.reactToComment
+);
+
 export default router;

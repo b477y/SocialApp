@@ -215,3 +215,56 @@ export const unfreezeComment = asyncHandler(async (req, res, next) => {
     data: { comment },
   });
 });
+
+export const reactToComment = asyncHandler(async (req, res, next) => {
+  const { postId, commentId } = req.params;
+  const { action } = req.query;
+
+  if (!postId) return next(new Error("Post id is required", { cause: 409 }));
+
+  if (!commentId)
+    return next(new Error("Comment id is required", { cause: 409 }));
+
+  if (!action) {
+    return next(
+      new Error("The action (query param) is required", { cause: 400 })
+    );
+  }
+
+  if (!["like-comment", "unlike-comment"].includes(action)) {
+    return next(
+      new Error(
+        "Invalid action value. Allowed values: ['like-comment', 'unlike-comment']",
+        { cause: 400 }
+      )
+    );
+  }
+
+  const data =
+    action === "like-comment"
+      ? { $addToSet: { likes: req.user._id } }
+      : { $pull: { likes: req.user._id } };
+
+  const comment = await dbService.findOneAndUpdate({
+    model: commentModel,
+    filter: {
+      _id: commentId,
+      postId: postId,
+      deletedAt: { $exists: false },
+    },
+    data,
+    options: {
+      new: true,
+    },
+  });
+
+  return successResponse({
+    res,
+    status: 200,
+    message:
+      action === "like-comment"
+        ? "Comment liked successfully"
+        : "Comment unliked successfully",
+    data: { comment },
+  });
+});
