@@ -12,7 +12,6 @@ const postSchema = new Schema(
       },
     },
     attachments: [{ secure_url: String, public_id: String }],
-    comments: [{ type: Types.ObjectId, ref: "Comment" }],
     likes: [{ type: Types.ObjectId, ref: "User" }],
     tags: [{ type: Types.ObjectId, ref: "User" }],
     createdBy: { type: Types.ObjectId, ref: "User", required: true },

@@ -39,15 +39,6 @@ export const createComment = asyncHandler(async (req, res, next) => {
     },
   });
 
-  const updatedPost = await dbService.updateOne({
-    model: postModel,
-    filter: { _id: postId, deletedAt: { $exists: false } },
-    data: {
-      $push: { comments: comment._id },
-      createdBy: req.user._id,
-    },
-  });
-
   return successResponse({
     res,
     status: 201,

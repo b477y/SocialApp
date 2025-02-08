@@ -4,60 +4,62 @@ import { postModel } from "../../../db/models/Post.model.js";
 import { successResponse } from "../../../utils/response/success.response.js";
 import * as dbService from "../../../db/db.service.js";
 import { roleTypes } from "../../../db/models/User.model.js";
+import { commentModel } from "../../../db/models/Comment.model.js";
 
 export const getPosts = asyncHandler(async (req, res, next) => {
   const posts = await dbService.find({
     model: postModel,
-    filter: { isDeleted: { $exists: false } },
-    populate: [
-      {
-        path: "createdBy",
-        select: "username image",
-      },
-      {
-        path: "likes",
-        select: "username image",
-      },
-    ],
+    filter: { deletedAt: { $exists: false } },
   });
 
   if (!posts.length) {
     return next(new Error("There are no posts", { cause: 404 }));
   }
 
-  return successResponse({
-    res,
-    status: 200,
-    message: "Posts retrieved successfully",
-    data: { posts },
-  });
-});
-
-export const getPost = asyncHandler(async (req, res, next) => {
-  const post = await dbService.findOne({
-    model: postModel,
-    filter: { _id: req.params.postId, isDeleted: { $exists: false } },
-    populate: [
-      {
-        path: "createdBy",
-        select: "username image",
+  const result = [];
+  for (const post of posts) {
+    const comments = await dbService.find({
+      model: commentModel,
+      filter: {
+        postId: post._id,
+        deletedAt: { $exists: false },
       },
-      {
-        path: "likes",
-        select: "username image",
-      },
-    ],
-  });
-
-  if (!post) {
-    return next(new Error("Post not found", { cause: 404 }));
+    });
+    result.push({ post, comments });
   }
 
   return successResponse({
     res,
     status: 200,
+    message: "Posts retrieved successfully",
+    data: { posts: result },
+  });
+});
+
+export const getPost = asyncHandler(async (req, res, next) => {
+  const { postId } = req.params;
+
+  const post = await dbService.findOne({
+    model: postModel,
+    filter: { _id: postId, deletedAt: { $exists: false } },
+  });
+
+  if (!post) {
+    return next(new Error("Post not found", { cause: 404 }));
+  }
+  const comments = await dbService.find({
+    model: commentModel,
+    filter: {
+      postId: post._id,
+      deletedAt: { $exists: false },
+    },
+  });
+
+  return successResponse({
+    res,
+    status: 200,
     message: "Post retrieved successfully",
-    data: { post },
+    data: { post, comments },
   });
 });
 
