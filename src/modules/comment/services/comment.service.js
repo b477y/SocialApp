@@ -6,6 +6,47 @@ import { cloud } from "../../../utils/multer/cloudinary.multer.js";
 import { successResponse } from "../../../utils/response/success.response.js";
 import { roleTypes } from "../../../db/models/User.model.js";
 
+export const getComments = asyncHandler(async (req, res, next) => {
+  const { postId } = req.params;
+
+  const comments = await dbService.find({
+    model: commentModel,
+    filter: { deletedAt: { $exists: false } },
+  });
+
+  if (!comments.length) {
+    return next(
+      new Error("There are no comments on this post", { cause: 404 })
+    );
+  }
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Comments retrieved successfully",
+    data: { comments },
+  });
+});
+
+export const getComment = asyncHandler(async (req, res, next) => {
+  const { postId, commentId } = req.params;
+
+  const comment = await dbService.findOne({
+    model: commentModel,
+    filter: { _id: commentId, postId, deletedAt: { $exists: false } },
+  });
+
+  if (!comment) {
+    return next(new Error("Invalid comment or post ID", { cause: 404 }));
+  }
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Comment retrieved successfully",
+    data: { comment },
+  });
+});
 export const createComment = asyncHandler(async (req, res, next) => {
   const { postId } = req.params;
 

@@ -14,6 +14,11 @@ const router = Router({
   mergeParams: true,
 });
 
+
+router.get("/", authentication(), commentService.getComments);
+
+router.get("/:commentId", authentication(), commentService.getComment);
+
 router.post(
   "/",
   authentication(),

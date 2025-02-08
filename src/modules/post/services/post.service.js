@@ -7,24 +7,22 @@ import { roleTypes } from "../../../db/models/User.model.js";
 import { commentModel } from "../../../db/models/Comment.model.js";
 
 export const getPosts = asyncHandler(async (req, res, next) => {
-  const posts = await dbService.find({
-    model: postModel,
-    filter: { deletedAt: { $exists: false } },
-  });
-
-  if (!posts.length) {
-    return next(new Error("There are no posts", { cause: 404 }));
-  }
+  const cursor = await postModel
+    .find({ isDeleted: { $exists: false } })
+    .cursor();
 
   const result = [];
-  for (const post of posts) {
+
+  for (
+    let post = await cursor.next();
+    post != null;
+    post = await cursor.next()
+  ) {
     const comments = await dbService.find({
       model: commentModel,
-      filter: {
-        postId: post._id,
-        deletedAt: { $exists: false },
-      },
+      filter: { postId: post._id, deletedAt: { $exists: false } },
     });
+
     result.push({ post, comments });
   }
 
@@ -39,27 +37,33 @@ export const getPosts = asyncHandler(async (req, res, next) => {
 export const getPost = asyncHandler(async (req, res, next) => {
   const { postId } = req.params;
 
-  const post = await dbService.findOne({
-    model: postModel,
-    filter: { _id: postId, deletedAt: { $exists: false } },
-  });
+  const cursor = await postModel
+    .findOne({
+      _id: postId,
+      isDeleted: { $exists: false },
+    })
+    .cursor();
 
-  if (!post) {
-    return next(new Error("Post not found", { cause: 404 }));
+  const result = [];
+
+  for (
+    let post = await cursor.next();
+    post != null;
+    post = await cursor.next()
+  ) {
+    const comments = await dbService.find({
+      model: commentModel,
+      filter: { postId: post._id, deletedAt: { $exists: false } },
+    });
+
+    result.push({ post, comments });
   }
-  const comments = await dbService.find({
-    model: commentModel,
-    filter: {
-      postId: post._id,
-      deletedAt: { $exists: false },
-    },
-  });
 
   return successResponse({
     res,
     status: 200,
     message: "Post retrieved successfully",
-    data: { post, comments },
+    data: { post: result },
   });
 });
 
