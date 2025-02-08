@@ -47,6 +47,7 @@ export const getComment = asyncHandler(async (req, res, next) => {
     data: { comment },
   });
 });
+
 export const createComment = asyncHandler(async (req, res, next) => {
   const { postId } = req.params;
 

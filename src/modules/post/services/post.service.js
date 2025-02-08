@@ -4,66 +4,49 @@ import { postModel } from "../../../db/models/Post.model.js";
 import { successResponse } from "../../../utils/response/success.response.js";
 import * as dbService from "../../../db/db.service.js";
 import { roleTypes } from "../../../db/models/User.model.js";
-import { commentModel } from "../../../db/models/Comment.model.js";
 
 export const getPosts = asyncHandler(async (req, res, next) => {
-  const cursor = await postModel
-    .find({ isDeleted: { $exists: false } })
-    .cursor();
+  const posts = await dbService.find({
+    model: postModel,
+    filter: {
+      isDeleted: { $exists: false },
+    },
+    populate: [{ path: "comments" }],
+  });
 
-  const result = [];
-
-  for (
-    let post = await cursor.next();
-    post != null;
-    post = await cursor.next()
-  ) {
-    const comments = await dbService.find({
-      model: commentModel,
-      filter: { postId: post._id, deletedAt: { $exists: false } },
-    });
-
-    result.push({ post, comments });
+  if (!posts.length) {
+    return next(new Error("There are no posts", { cause: 404 }));
   }
 
   return successResponse({
     res,
     status: 200,
     message: "Posts retrieved successfully",
-    data: { posts: result },
+    data: { posts },
   });
 });
 
 export const getPost = asyncHandler(async (req, res, next) => {
   const { postId } = req.params;
 
-  const cursor = await postModel
-    .findOne({
+  const post = await dbService.findOne({
+    model: postModel,
+    filter: {
       _id: postId,
       isDeleted: { $exists: false },
-    })
-    .cursor();
+    },
+    populate: [{ path: "comments", match: { deletedAt: { $exists: false } } }],
+  });
 
-  const result = [];
-
-  for (
-    let post = await cursor.next();
-    post != null;
-    post = await cursor.next()
-  ) {
-    const comments = await dbService.find({
-      model: commentModel,
-      filter: { postId: post._id, deletedAt: { $exists: false } },
-    });
-
-    result.push({ post, comments });
+  if (!post) {
+    return next(new Error("Post not found", { cause: 404 }));
   }
 
   return successResponse({
     res,
     status: 200,
     message: "Post retrieved successfully",
-    data: { post: result },
+    data: { post },
   });
 });
 

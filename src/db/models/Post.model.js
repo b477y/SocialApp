@@ -19,7 +19,13 @@ const postSchema = new Schema(
     deletedBy: { type: Types.ObjectId, ref: "User" },
     isDeleted: Boolean,
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+postSchema.virtual("comments", {
+  localField: "_id",
+  foreignField: "postId",
+  ref: "Comment",
+});
 
 export const postModel = mongoose.models.Post || model("Post", postSchema);
