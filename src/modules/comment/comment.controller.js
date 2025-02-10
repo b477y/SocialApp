@@ -14,13 +14,12 @@ const router = Router({
   mergeParams: true,
 });
 
-
 router.get("/", authentication(), commentService.getComments);
 
 router.get("/:commentId", authentication(), commentService.getComment);
 
 router.post(
-  "/",
+  "/:commentId?",
   authentication(),
   authorization(endpoint.createComment),
   uploadCloudFile(fileValidations.image).array("attachment", 2),

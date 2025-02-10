@@ -11,7 +11,12 @@ export const getComments = asyncHandler(async (req, res, next) => {
 
   const comments = await dbService.find({
     model: commentModel,
-    filter: { deletedAt: { $exists: false } },
+    filter: {
+      deletedAt: { $exists: false },
+      postId,
+      commentId: { $exists: false },
+    },
+    populate: { path: "replies" },
   });
 
   if (!comments.length) {
@@ -34,6 +39,7 @@ export const getComment = asyncHandler(async (req, res, next) => {
   const comment = await dbService.findOne({
     model: commentModel,
     filter: { _id: commentId, postId, deletedAt: { $exists: false } },
+    populate: { path: "replies" },
   });
 
   if (!comment) {
@@ -49,7 +55,17 @@ export const getComment = asyncHandler(async (req, res, next) => {
 });
 
 export const createComment = asyncHandler(async (req, res, next) => {
-  const { postId } = req.params;
+  const { postId, commentId } = req.params;
+
+  if (
+    !commentId &&
+    !(await dbService.findOne({
+      model: commentModel,
+      filter: { _id: commentId, postId, deletedAt: { $exists: false } },
+    }))
+  ) {
+    return next(new Error("Invalid parent comment", { cause: 404 }));
+  }
 
   const post = await dbService.findOne({
     model: postModel,
@@ -76,6 +92,7 @@ export const createComment = asyncHandler(async (req, res, next) => {
     model: commentModel,
     data: {
       ...req.body,
+      commentId,
       postId,
       createdBy: req.user._id,
     },

@@ -12,6 +12,7 @@ const commentSchema = new Schema(
       },
     },
     postId: { type: Types.ObjectId, ref: "Post", required: true },
+    commentId: { type: Types.ObjectId, ref: "Comment" },
     attachments: [{ secure_url: String, public_id: String }],
     likes: [{ type: Types.ObjectId, ref: "User" }],
     tags: [{ type: Types.ObjectId, ref: "User" }],
@@ -20,8 +21,14 @@ const commentSchema = new Schema(
     deletedBy: { type: Types.ObjectId, ref: "User" },
     deletedAt: Date,
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+commentSchema.virtual("replies", {
+  localField: "_id",
+  foreignField: "commentId",
+  ref: "Comment",
+});
 
 export const commentModel =
   mongoose.models.Comment || model("Comment", commentSchema);

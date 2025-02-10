@@ -11,7 +11,18 @@ export const getPosts = asyncHandler(async (req, res, next) => {
     filter: {
       isDeleted: { $exists: false },
     },
-    populate: [{ path: "comments" }],
+    populate: [
+      {
+        path: "comments",
+        match: { deletedAt: { $exists: false }, commentId: { $exists: false } },
+        populate: [
+          {
+            path: "replies",
+            match: { deletedAt: { $exists: false } },
+          },
+        ],
+      },
+    ],
   });
 
   if (!posts.length) {
@@ -35,7 +46,18 @@ export const getPost = asyncHandler(async (req, res, next) => {
       _id: postId,
       isDeleted: { $exists: false },
     },
-    populate: [{ path: "comments", match: { deletedAt: { $exists: false } } }],
+    populate: [
+      {
+        path: "comments",
+        match: { deletedAt: { $exists: false }, commentId: { $exists: false } },
+        populate: [
+          {
+            path: "replies",
+            match: { deletedBy: { $exists: false } },
+          },
+        ],
+      },
+    ],
   });
 
   if (!post) {
