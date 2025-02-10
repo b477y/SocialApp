@@ -1,13 +1,80 @@
 import { asyncHandler } from "../../../utils/response/error.response.js";
 import { successResponse } from "../../../utils/response/success.response.js";
 import * as dbService from "../../../db/db.service.js";
-import { userModel } from "../../../db/models/User.model.js";
+import { roleTypes, userModel } from "../../../db/models/User.model.js";
+import { postModel } from "../../../db/models/Post.model.js";
 import { emailEvent } from "../../../utils/events/email.event.js";
 import {
   compareHash,
   generateHash,
 } from "../../../utils/security/hash.security.js";
 import { cloud } from "../../../utils/multer/cloudinary.multer.js";
+
+export const dashboard = asyncHandler(async (req, res, next) => {
+  const result = await Promise.allSettled([
+    await dbService.find({
+      model: userModel,
+      filter: { isDeleted: false },
+      populate: [{ path: "viewers.viewer", select: "username email gender" }],
+    }),
+    await dbService.find({
+      model: postModel,
+      filter: { isDeleted: false },
+      populate: [
+        {
+          path: "comments",
+          match: {
+            deletedAt: { $exists: false },
+            commentId: { $exists: false },
+          },
+          populate: [
+            { path: "replies", match: { deletedAt: { $exists: false } } },
+          ],
+        },
+      ],
+    }),
+  ]);
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "Profiles & posts retrieved successfully",
+    data: { result },
+  });
+});
+
+export const updateUserRole = asyncHandler(async (req, res, next) => {
+  const { userId } = req.params;
+  const { newRole } = req.body;
+
+  const role =
+    req.user.role === roleTypes.superAdmin
+      ? { role: { $nin: [roleTypes.superAdmin] } }
+      : { role: { $nin: [roleTypes.superAdmin, roleTypes.admin] } };
+
+  const user = await dbService.findOneAndUpdate({
+    model: userModel,
+    filter: {
+      _id: userId,
+      isDeleted: false,
+      ...role,
+    },
+    data: {
+      role: newRole,
+      updatedBy: req.user._id,
+    },
+    options: {
+      new: true,
+    },
+  });
+
+  return successResponse({
+    res,
+    status: 200,
+    message: "The role changed successfully",
+    data: { user },
+  });
+});
 
 export const getProfile = asyncHandler(async (req, res, next) => {
   const user = await dbService.findOne({

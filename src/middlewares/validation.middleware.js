@@ -1,6 +1,6 @@
 import joi from "joi";
 import { Types } from "mongoose";
-import { genderTypes } from "../db/models/User.model.js";
+import { genderTypes, roleTypes } from "../db/models/User.model.js";
 
 export const isValidObjectId = (value, helper) => {
   return Types.ObjectId.isValid(value)
@@ -29,6 +29,7 @@ export const generalFields = {
   OTP: joi.string().pattern(new RegExp(/^\d{4}$/)),
   id: joi.string().custom(isValidObjectId),
   content: joi.string().min(2).max(50000).trim(),
+  role: joi.string().valid(...Object.values(roleTypes)),
 };
 
 export const validation = (schema) => {

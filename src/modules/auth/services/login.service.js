@@ -31,18 +31,16 @@ const login = asyncHandler(async (req, res, next) => {
 
   const ACCESS_TOKEN = generateToken({
     payload: { id: user._id },
-    secretKey:
-      user.role === roleTypes.admin
-        ? process.env.ADMIN_ACCESS_TOKEN_SK
-        : process.env.USER_ACCESS_TOKEN_SK,
+    secretKey: [roleTypes.admin, roleTypes.superAdmin].includes(user.role)
+      ? process.env.ADMIN_ACCESS_TOKEN_SK
+      : process.env.USER_ACCESS_TOKEN_SK,
   });
 
   const REFRESH_TOKEN = generateToken({
     payload: { id: user._id },
-    secretKey:
-      user.role === roleTypes.admin
-        ? process.env.ADMIN_REFRESH_TOKEN_SK
-        : process.env.USER_REFRESH_TOKEN_SK,
+    secretKey: [roleTypes.admin, roleTypes.superAdmin].includes(user.role)
+      ? process.env.ADMIN_REFRESH_TOKEN_SK
+      : process.env.USER_REFRESH_TOKEN_SK,
     expiresIn: 31536000,
   });
 

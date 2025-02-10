@@ -1,7 +1,11 @@
 import mongoose, { Schema, Types, model } from "mongoose";
 
 export const genderTypes = { male: "Male", female: "Female" };
-export const roleTypes = { user: "User", admin: "Admin" };
+export const roleTypes = {
+  user: "User",
+  admin: "Admin",
+  superAdmin: "SuperAdmin",
+};
 export const providerTypes = { google: "Google", system: "System" };
 
 const userSchema = new Schema(
@@ -78,6 +82,7 @@ const userSchema = new Schema(
       default: providerTypes.system,
     },
     changeCredentialsTime: Date,
+    updatedBy: { type: Types.ObjectId, ref: "User" },
     viewers: [
       {
         viewer: { type: Types.ObjectId, ref: "User" },

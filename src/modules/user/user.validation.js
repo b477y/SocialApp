@@ -33,6 +33,14 @@ export const updatePassword = joi
   })
   .required();
 
+export const updateUserRole = joi
+  .object()
+  .keys({
+    userId: generalFields.id.required(),
+    newRole: generalFields.role.required(),
+  })
+  .required();
+
 export const updateProfile = joi
   .object()
   .keys({
