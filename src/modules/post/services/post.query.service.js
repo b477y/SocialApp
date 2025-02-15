@@ -7,6 +7,7 @@ export const postList = async (parent, args) => {
     filter: {
       isDeleted: { $exists: false },
     },
+    populate: [{ path: "createdBy" }],
   });
 
   if (!posts.length) {
