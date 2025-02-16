@@ -4,13 +4,16 @@ import { postModel } from "../../../db/models/Post.model.js";
 import { successResponse } from "../../../utils/response/success.response.js";
 import * as dbService from "../../../db/db.service.js";
 import { roleTypes } from "../../../db/models/User.model.js";
+import { paginate } from "../../../utils/pagination.js";
 
 export const getPosts = asyncHandler(async (req, res, next) => {
-  const posts = await dbService.find({
+  let { page, limit } = req.query;
+
+  const response = await paginate({
     model: postModel,
-    filter: {
-      isDeleted: { $exists: false },
-    },
+    page,
+    limit,
+    filter: { isDeleted: { $exists: false } },
     populate: [
       {
         path: "comments",
@@ -25,15 +28,15 @@ export const getPosts = asyncHandler(async (req, res, next) => {
     ],
   });
 
-  if (!posts.length) {
-    return next(new Error("There are no posts", { cause: 404 }));
+  if (!response.data.length) {
+    return next(new Error("No posts found", { cause: 404 }));
   }
 
   return successResponse({
     res,
     status: 200,
     message: "Posts retrieved successfully",
-    data: { posts },
+    data: { response },
   });
 });
 

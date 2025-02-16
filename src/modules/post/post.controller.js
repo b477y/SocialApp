@@ -17,7 +17,7 @@ const router = Router();
 
 router.use("/:postId/comment", commentController);
 
-router.get("/", authentication(), postService.getPosts);
+router.get("/", postService.getPosts);
 
 router.get("/:postId", authentication(), postService.getPost);
 
