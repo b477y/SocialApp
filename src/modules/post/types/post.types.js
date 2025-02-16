@@ -8,6 +8,8 @@ import {
 } from "graphql";
 import { oneUserResponse } from "../../user/types/user.types.js";
 import { imageType } from "../../../utils/app.types.shared.js";
+import * as dbService from "../../../db/db.service.js";
+import { userModel } from "../../../db/models/User.model.js";
 
 export const onePostResponse = new GraphQLObjectType({
   name: "onePostResponse",
@@ -19,7 +21,17 @@ export const onePostResponse = new GraphQLObjectType({
     },
     likes: { type: new GraphQLList(GraphQLID) },
     tags: { type: new GraphQLList(GraphQLID) },
-    createdBy: { type: oneUserResponse },
+    createdBy: { type: GraphQLID },
+    createdByPopulate: {
+      type: oneUserResponse,
+      resolve: async (parent, args) => {
+        const user = await dbService.findOne({
+          model: userModel,
+          filter: { _id: parent.createdBy },
+        });
+        return user;
+      },
+    },
     updatedBy: { type: GraphQLID },
     deletedBy: { type: GraphQLID },
     isDeleted: { type: GraphQLBoolean },
@@ -35,6 +47,17 @@ export const postListResponse = new GraphQLObjectType({
     statusCode: { type: GraphQLInt },
     data: {
       type: new GraphQLList(onePostResponse),
+    },
+  },
+});
+
+export const reactToPostResponse = new GraphQLObjectType({
+  name: "reactToPost",
+  fields: {
+    message: { type: GraphQLString },
+    statusCode: { type: GraphQLInt },
+    data: {
+      type: onePostResponse,
     },
   },
 });

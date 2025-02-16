@@ -34,3 +34,20 @@ export const reactToPost = joi
       }),
   })
   .required();
+
+export const reactToPostGraph = joi
+  .object()
+  .keys({
+    postId: generalFields.id.required(),
+    action: joi
+      .string()
+      .valid("like", "unlike")
+      .insensitive()
+      .required()
+      .messages({
+        "any.only":
+          "Invalid action. Allowed values: ['like-post', 'unlike-post']",
+      }),
+    authorization: joi.string(),
+  })
+  .required();

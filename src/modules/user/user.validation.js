@@ -51,3 +51,10 @@ export const updateProfile = joi
     address: generalFields.address,
   })
   .required();
+
+export const getProfileGraph = joi
+  .object()
+  .keys({
+    authorization: joi.string(),
+  })
+  .required();
