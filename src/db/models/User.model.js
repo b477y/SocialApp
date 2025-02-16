@@ -1,4 +1,5 @@
 import mongoose, { Schema, Types, model } from "mongoose";
+import { generateHash } from "../../utils/security/hash.security.js";
 
 export const genderTypes = { male: "Male", female: "Female" };
 export const roleTypes = {
@@ -92,5 +93,10 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
+
+userSchema.pre("save", async function (next, docs) {
+  this.password = await generateHash({ plaintext: this.password });
+  next();
+});
 
 export const userModel = mongoose.models.User || model("User", userSchema);

@@ -16,8 +16,8 @@ const register = asyncHandler(async (req, res, next) => {
 
   const data = { username, email, phoneNumber, password };
 
-  const hashedPassword = generateHash({ plaintext: password });
-  data.password = hashedPassword;
+  // const hashedPassword = generateHash({ plaintext: password });
+  // data.password = hashedPassword;
 
   const newUser = await dbService.create({
     model: userModel,
