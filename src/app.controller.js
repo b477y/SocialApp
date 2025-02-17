@@ -10,10 +10,14 @@ import { successResponse } from "./utils/response/success.response.js";
 import playground from "graphql-playground-middleware-express";
 import { schema } from "./modules/app.graph.js";
 import { limiter } from "./utils/security/limiter.js";
+import helmet from "helmet";
+import morgan from "morgan";
 
 const bootstrap = (app, express) => {
   app.use(cors());
   app.use(limiter);
+  app.use(helmet());
+  app.use(morgan("dev"));
   app.use("/uploads", express.static(path.resolve("./src/uploads")));
 
   app.use(express.json());

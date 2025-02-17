@@ -1,11 +1,14 @@
 import mongoose from "mongoose";
+import chalk from "chalk";
 
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.DB_URL);
-    console.log(`Database connection established successfully`);
+    console.log(chalk.bgBlue(`Database connection established successfully`));
   } catch (error) {
-    console.log(`An error occurred while connecting to the database`);
+    console.log(
+      chalk.bgRed(`An error occurred while connecting to the database`)
+    );
   }
 };
 
