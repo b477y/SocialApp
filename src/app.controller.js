@@ -9,9 +9,11 @@ import { createHandler } from "graphql-http/lib/use/express";
 import { successResponse } from "./utils/response/success.response.js";
 import playground from "graphql-playground-middleware-express";
 import { schema } from "./modules/app.graph.js";
+import { limiter } from "./utils/security/limiter.js";
 
 const bootstrap = (app, express) => {
   app.use(cors());
+  app.use(limiter);
   app.use("/uploads", express.static(path.resolve("./src/uploads")));
 
   app.use(express.json());
